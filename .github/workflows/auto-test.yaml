@@ -1,0 +1,32 @@
+on: 
+  pull_request:
+    types: [ opened, edited, synchronize ]
+
+jobs:
+  AutoTest:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Comment PR
+      uses: thollander/actions-comment-pull-request@v3
+      with:
+        message: |
+          Testing...
+        comment-tag: test
+
+    - name: setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: test
+      run: python .github/scripts/test-pr.py 2>&1 | Tee-Object -FilePath temp.txt
+      continue-on-error: true
+
+    - name: UpdateComment
+      uses: thollander/actions-comment-pull-request@v3
+      with:
+        file-path: temp.txt
+        comment-tag: test
